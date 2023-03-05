@@ -1,0 +1,58 @@
+statements      : newline* statement (newline+ statement)* newline*
+
+statement       : KEYWORD: return expr?
+                : KEYWORD: continue
+                : KEYWORD: break
+                : expr
+
+expr            : KEYWORD: Var Identifier Eq expr
+                : compExpr ((KEYWORD: and|KEYWORD: or) compExpr)*
+
+compExpr        : not compExpr
+                : arithExpr ((Ee|Lt|Gt|Lte|Gte) arithExpr)*
+        
+arithExpr       : term ((Plus|Minus) term)*
+
+term            : factor ((Mul|Div) factor)*
+
+factor          : (Plus|Minus) factor
+                : power
+
+power           : call (Pow factor)*
+
+call            : atom (Lparen (expr (comma expr)*)? Rparen)?
+
+atom            : Int|Float|String|Identifier
+                : Lparen expr Rparen
+                : listExpr
+                : ifExpr
+                : forExpr
+                : whileExpr
+                : funcDef
+
+listExpr        : LsqBrack (expr (comma, expr)*)? RsqBrack
+
+ifExpr          : KEYWORD: if expr KEYWORD: then
+                  (statement elifExpr|elseExpr?)
+                |  (newline statements KEYWORD:end|elifExpr|elseExpr)
+
+elifExpr        : KEYWORD: elif expr KEYWORD: then
+                  (statement elifExpr|elseExpr?)
+                |  (newline statements KEYWORD:end|elifExpr|elseExpr)
+
+elseExpr        : KEYWORD: else
+                  statement
+                | (newline statements KEYWORD: end)
+
+forExpr         : KEYWORD: for Identifier Eq expr KEYWORD: to expr
+                  (KEYWORD: step expr)? KEYWORD: then
+                  statement | (newline statements KEYWORD: end)
+
+
+whileExpr       : KEYWORD: while expr KEYWORD: then
+                  statement | (newline statements KEYWORD: end)
+
+funcDef         : KEYWORD: fun Identifier?
+                  Lparen (Identifier (comma Identifier)*)? Rparen
+                  (arrow expr) | (newline statements KEYWORD: end)
+

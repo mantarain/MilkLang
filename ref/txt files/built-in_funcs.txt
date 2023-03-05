@@ -1,0 +1,12 @@
+print
+print_ret
+input
+input_int
+clear
+isNum
+isStr
+isList
+isFunc
+append
+pop
+extend

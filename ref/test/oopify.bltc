@@ -1,0 +1,30 @@
+# This is a very useful piece of software
+
+def oopify(prefix) -> prefix + "oop"
+
+def join(elements, separator)
+	var result = ""
+	var len = len(elements)
+
+	for i = 0 TO len then
+		var result = result + elements/i
+		if i != len - 1 then var result = result + separator
+	end
+	return result
+end
+
+def map(elements, func)
+	var new_elements = []
+
+	for i = 0 TO len(elements) then
+		append(new_elements, func(elements/i))
+	end
+
+	return new_elements
+end
+
+print("Greetings universe!")
+
+for i = 0 TO 5 then
+	print(join(map(["l", "sp"], oopify), ", "))
+end
