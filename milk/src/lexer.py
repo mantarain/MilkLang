@@ -45,7 +45,7 @@ class Lexer:
                 tokens.append(self.mkString()) # TODO: make string with single quotes as well
             
             elif self.currentChar == "!":
-                token, error = self.mkNotEquals() # type: ignore
+                token, error = self.mkNotEquals()
                 if error: return [], error
                 tokens.append(token)
             
@@ -66,6 +66,7 @@ class Lexer:
             #< Math Op Tokens >#
             elif self.currentChar == "+":
                 tokens.append(Token(Tokens["Tk_plus"], pStart=self.pos))
+                self.advance()
             
             elif self.currentChar == "*":
                 tokens.append(Token(Tokens["Tk_mul"], pStart=self.pos))
@@ -114,6 +115,9 @@ class Lexer:
                 char = self.currentChar
                 self.advance()
                 return [], IllegalCharError(pStart, self.pos, "'" + char + "'")
+        
+        tokens.append(Token(Tokens["Tk_EOF"], pStart=self.pos))
+        return tokens, None
     
     def mkNumber(self):
         numStr = ''
@@ -155,7 +159,7 @@ class Lexer:
             escChar = False
     
         self.advance()
-        return Token(Tokens["Tk_String"], string, pStart, self.pos)
+        return Token(Tokens["Tk_string"], string, pStart, self.pos)
     
     def mkIdent(self):
         idStr = ""
@@ -185,7 +189,7 @@ class Lexer:
 
         if self.currentChar == "=":
             self.advance()
-            return Token(Tokens["Tk_NotEquals"], pStart=pStart, pEnd=self.pos)
+            return Token(Tokens["Tk_NotEquals"], pStart=pStart, pEnd=self.pos), None
         
         self.advance()
         return None, ExpectedCharError(pStart, self.pos, "'=' after '!'")
