@@ -2,7 +2,7 @@
 # IMPORTS
 #######################################
 
-from strwtars import *
+from milk.libs.strwtars import *
 
 #######################################
 # ERRORS

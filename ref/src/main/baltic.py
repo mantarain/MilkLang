@@ -2,7 +2,7 @@
 # IMPORTS
 #######################################
 
-from strwtars import *
+from milk.libs.strwtars import *
 from src.main.position import *
 from src.main.error import *
 from src.main.tokens import *
