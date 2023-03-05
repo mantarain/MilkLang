@@ -33,6 +33,7 @@ Tokens = {}
 #< Type tokens >#
 Tokens["Tk_int"] = "Int"
 Tokens["Tk_float"] = "Float"
+Tokens["Tk_string"] = "String"
 Tokens["Tk_identifier"] = "Ident"
 Tokens["Tk_keyword"] = "KeyW"
 
@@ -43,7 +44,7 @@ Tokens["Tk_div"] = "Div"
 Tokens["Tk_mul"] = "Mul"
 Tokens["Tk_pow"] = "Pow"
 
-#< Separator tokens >#
+#< Container tokens >#
 Tokens["Tk_Lparen"] = "Lparen"
 Tokens["Tk_Rparen"] = "Rparen"
 Tokens["Tk_Lbracket"] = "LBracket"
@@ -61,6 +62,9 @@ Tokens["Tk_MoreThanEquals"] = "MoreThanEquals"
 
 #< Other tokens >#
 Tokens["Tk_Newline"] = "Newline"
+Tokens["Tk_Equals"] = "Equals"
+Tokens["Tk_Comma"] = "Comma"
+Tokens["Tk_Arrow"] = "Arrow"
 Tokens["Tk_EOF"] = "EOF"
 
 
