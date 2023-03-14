@@ -32,7 +32,7 @@ class Lexer:
                 self.skipComment()
             
             elif self.currentChar in ";\n":
-                tokens.append(Token(Tokens["Tk_Newline"],pStart=self.pos))
+                tokens.append(Token(Tk_Newline,pStart=self.pos))
                 self.advance()
             
             elif self.currentChar in DIGITS:
@@ -65,49 +65,49 @@ class Lexer:
 
             #< Math Op Tokens >#
             elif self.currentChar == "+":
-                tokens.append(Token(Tokens["Tk_plus"], pStart=self.pos))
+                tokens.append(Token(Tk_plus, pStart=self.pos))
                 self.advance()
             
             elif self.currentChar == "*":
-                tokens.append(Token(Tokens["Tk_mul"], pStart=self.pos))
+                tokens.append(Token(Tk_mul, pStart=self.pos))
                 self.advance()
             
             elif self.currentChar == "/":
-                tokens.append(Token(Tokens["Tk_div"], pStart=self.pos))
+                tokens.append(Token(Tk_div, pStart=self.pos))
                 self.advance()
             
             elif self.currentChar == "^":
-                tokens.append(Token(Tokens["Tk_pow"], pStart=self.pos))
+                tokens.append(Token(Tk_pow, pStart=self.pos))
                 self.advance()
             
             #< Container Tokens >#
 
             elif self.currentChar == "(":
-                tokens.append(Token(Tokens["Tk_Lparen"], pStart=self.pos))
+                tokens.append(Token(Tk_Lparen, pStart=self.pos))
                 self.advance()
             
             elif self.currentChar == ")":
-                tokens.append(Token(Tokens["Tk_Rparen"], pStart=self.pos))
+                tokens.append(Token(Tk_Rparen, pStart=self.pos))
                 self.advance()
             
             elif self.currentChar == "[":
-                tokens.append(Token(Tokens["Tk_Lbracket"], pStart=self.pos))
+                tokens.append(Token(Tk_Lbracket, pStart=self.pos))
                 self.advance()
             
             elif self.currentChar == "]":
-                tokens.append(Token(Tokens["Tk_RBracket"], pStart=self.pos))
+                tokens.append(Token(Tk_RBracket, pStart=self.pos))
                 self.advance()
             
             elif self.currentChar == "{":
-                tokens.append(Token(Tokens["Tk_LBrace"], pStart=self.pos))
+                tokens.append(Token(Tk_LBrace, pStart=self.pos))
                 self.advance()
             
             elif self.currentChar == "}":
-                tokens.append(Token(Tokens["Tk_RBrace"], pStart=self.pos))
+                tokens.append(Token(Tk_RBrace, pStart=self.pos))
                 self.advance()
             
             elif self.currentChar == ",":
-                tokens.append(Token(Tokens["Tk_Comma"], pStart=self.pos))
+                tokens.append(Token(Tk_Comma, pStart=self.pos))
                 self.advance()
             
             else:
@@ -116,7 +116,7 @@ class Lexer:
                 self.advance()
                 return [], IllegalCharError(pStart, self.pos, "'" + char + "'")
         
-        tokens.append(Token(Tokens["Tk_EOF"], pStart=self.pos))
+        tokens.append(Token(Tk_EOF, pStart=self.pos))
         return tokens, None
     
     def mkNumber(self):
@@ -132,9 +132,9 @@ class Lexer:
             self.advance()
         
         if dotCount == 0:
-            return Token(Tokens["Tk_int"], int(numStr), pStart, self.pos)
+            return Token(Tk_int, int(numStr), pStart, self.pos)
         else:
-            return Token(Tokens["Tk_float"], float(numStr), pStart, self.pos)
+            return Token(Tk_float, float(numStr), pStart, self.pos)
     
     def mkString(self):
         string = ""
@@ -159,7 +159,7 @@ class Lexer:
             escChar = False
     
         self.advance()
-        return Token(Tokens["Tk_string"], string, pStart, self.pos)
+        return Token(Tk_string, string, pStart, self.pos)
     
     def mkIdent(self):
         idStr = ""
@@ -169,17 +169,17 @@ class Lexer:
             idStr += self.currentChar
             self.advance()
         
-        tkType = Tokens["Tk_keyword"] if idStr in KEYWORDS else Tokens["Tk_identifier"]
+        tkType = Tk_keyword if idStr in KEYWORDS else Tk_identifier
         return Token(tkType, idStr, pStart, self.pos)
     
     def mkMinorArrow(self):
-        tkType = Tokens["Tk_minus"]
+        tkType = Tk_minus
         pStart = self.pos.copy()
         self.advance()
 
         if self.currentChar == ">":
             self.advance()
-            tkType = Tokens["Tk_Arrow"]
+            tkType = Tk_Arrow
         
         return Token(tkType, pStart=pStart, pEnd=self.pos)
     
@@ -189,41 +189,41 @@ class Lexer:
 
         if self.currentChar == "=":
             self.advance()
-            return Token(Tokens["Tk_NotEquals"], pStart=pStart, pEnd=self.pos), None
+            return Token(Tk_NotEquals, pStart=pStart, pEnd=self.pos), None
         
         self.advance()
         return None, ExpectedCharError(pStart, self.pos, "'=' after '!'")
     
     def mkEquals(self):
-        tkType = Tokens["Tk_Equals"]
+        tkType = Tk_Equals
         pStart = self.pos.copy()
         self.advance()
 
         if self.currentChar == "=":
             self.advance()
-            tkType = Tokens["Tk_DoubleEquals"]
+            tkType = Tk_DoubleEquals
         
         return Token(tkType, pStart=pStart, pEnd=self.pos)
     
     def mkLessThan(self):
-        tkType = Tokens["Tk_LessThan"]
+        tkType = Tk_LessThan
         pStart = self.pos.copy()
         self.advance()
 
         if self.currentChar == "=":
             self.advance()
-            tkType = Tokens["Tk_LessThanEquals"]
+            tkType = Tk_LessThanEquals
         
         return Token(tkType, pStart=pStart, pEnd=self.pos)
     
     def mkMoreThan(self):
-        tkType = Tokens["Tk_MoreThan"]
+        tkType = Tk_MoreThan
         pStart = self.pos.copy()
         self.advance()
 
         if self.currentChar == "=":
             self.advance()
-            tkType = Tokens["Tk_MoreThanEquals"]
+            tkType = Tk_MoreThanEquals
         
         return Token(tkType, pStart=pStart, pEnd=self.pos)
     

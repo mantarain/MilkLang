@@ -28,44 +28,42 @@ KEYWORDS = [
 
 #| Tokens and Keywords |#
 
-Tokens = {}
-
 #< Type tokens >#
-Tokens["Tk_int"] = "Int"
-Tokens["Tk_float"] = "Float"
-Tokens["Tk_string"] = "String"
-Tokens["Tk_identifier"] = "Ident"
-Tokens["Tk_keyword"] = "KeyW"
+Tk_int = "Int"
+Tk_float = "Float"
+Tk_string = "String"
+Tk_identifier = "Ident"
+Tk_keyword = "KeyW"
 
 #< Operation tokens >#
-Tokens["Tk_plus"] = "Plus"
-Tokens["Tk_minus"] = "Minus"
-Tokens["Tk_div"] = "Div"
-Tokens["Tk_mul"] = "Mul"
-Tokens["Tk_pow"] = "Pow"
+Tk_plus = "Plus"
+Tk_minus = "Minus"
+Tk_div = "Div"
+Tk_mul = "Mul"
+Tk_pow = "Pow"
 
 #< Container tokens >#
-Tokens["Tk_Lparen"] = "Lparen"
-Tokens["Tk_Rparen"] = "Rparen"
-Tokens["Tk_Lbracket"] = "LBracket"
-Tokens["Tk_RBracket"] = "RBracket"
-Tokens["Tk_LBrace"] = "LBrace"
-Tokens["Tk_RBrace"] = "RBrace"
+Tk_Lparen = "Lparen"
+Tk_Rparen = "Rparen"
+Tk_Lbracket = "LBracket"
+Tk_RBracket = "RBracket"
+Tk_LBrace = "LBrace"
+Tk_RBrace = "RBrace"
 
 #< Comparison tokens >#
-Tokens["Tk_DoubleEquals"] = "DoubleEquals"
-Tokens["Tk_NotEquals"] = "NotEquals"
-Tokens["Tk_LessThan"] = "LessThan"
-Tokens["Tk_MoreThan"] = "MoreThan"
-Tokens["Tk_LessThanEquals"] = "LessThanEquals"
-Tokens["Tk_MoreThanEquals"] = "MoreThanEquals"
+Tk_DoubleEquals = "DoubleEquals"
+Tk_NotEquals = "NotEquals"
+Tk_LessThan = "LessThan"
+Tk_MoreThan = "MoreThan"
+Tk_LessThanEquals = "LessThanEquals"
+Tk_MoreThanEquals = "MoreThanEquals"
 
 #< Other tokens >#
-Tokens["Tk_Newline"] = "Newline"
-Tokens["Tk_Equals"] = "Equals"
-Tokens["Tk_Comma"] = "Comma"
-Tokens["Tk_Arrow"] = "Arrow"
-Tokens["Tk_EOF"] = "EOF"
+Tk_Newline = "Newline"
+Tk_Equals = "Equals"
+Tk_Comma = "Comma"
+Tk_Arrow = "Arrow"
+Tk_EOF = "EOF"
 
 
 #| Token Class |#
