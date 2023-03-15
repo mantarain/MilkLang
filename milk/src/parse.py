@@ -3,10 +3,10 @@
 
 #< Imports >#
 
-from nodes import *
-from error import *
-from tokens import *
-from parserResult import *
+from src.nodes import *
+from src.error import *
+from src.tokens import *
+from src.parserResult import *
 
 #< Parser Class >#
 
@@ -34,7 +34,7 @@ class Parser:
     res = self.statements()
     if not res.error and self.currentTk.type != Tk_EOF:
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         "Token cannot appear after previous tokens"
       ))
     return res
@@ -44,7 +44,7 @@ class Parser:
   def statements(self):
     res = ParseResult()
     statements = []
-    pos_start = self.currentTk.pos_start.copy()
+    pStart = self.currentTk.pStart.copy()
 
     while self.currentTk.type == Tk_Newline:
       res.register_advancement()
@@ -75,13 +75,13 @@ class Parser:
 
     return res.success(ListNode(
       statements,
-      pos_start,
-      self.currentTk.pos_end.copy()
+      pStart,
+      self.currentTk.pEnd.copy()
     ))
 
   def statement(self):
     res = ParseResult()
-    pos_start = self.currentTk.pos_start.copy()
+    pStart = self.currentTk.pStart.copy()
 
     if self.currentTk.matches(Tk_keyword, 'return'):
       res.register_advancement()
@@ -90,22 +90,22 @@ class Parser:
       expr = res.try_register(self.expr())
       if not expr:
         self.reverse(res.reverseCount)
-      return res.success(ReturnNode(expr, pos_start, self.currentTk.pos_start.copy()))
+      return res.success(ReturnNode(expr, pStart, self.currentTk.pStart.copy()))
     
     if self.currentTk.matches(Tk_keyword, 'continue'):
       res.register_advancement()
       self.advance()
-      return res.success(ContinueNode(pos_start, self.currentTk.pos_start.copy()))
+      return res.success(ContinueNode(pStart, self.currentTk.pStart.copy()))
       
     if self.currentTk.matches(Tk_keyword, 'break'):
       res.register_advancement()
       self.advance()
-      return res.success(BreakNode(pos_start, self.currentTk.pos_start.copy()))
+      return res.success(BreakNode(pStart, self.currentTk.pStart.copy()))
 
     expr = res.register(self.expr())
     if res.error:
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         "Expected 'RETURN', 'CONTINUE', 'BREAK', 'var', 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'not'"
       ))
     return res.success(expr)
@@ -119,7 +119,7 @@ class Parser:
 
       if self.currentTk.type != Tk_identifier:
         return res.failure(InvalidSyntaxError(
-          self.currentTk.pos_start, self.currentTk.pos_end,
+          self.currentTk.pStart, self.currentTk.pEnd,
           "Expected identifier"
         ))
 
@@ -129,7 +129,7 @@ class Parser:
 
       if self.currentTk.type != Tk_Equals:
         return res.failure(InvalidSyntaxError(
-          self.currentTk.pos_start, self.currentTk.pos_end,
+          self.currentTk.pStart, self.currentTk.pEnd,
           "Expected '='"
         ))
 
@@ -143,7 +143,7 @@ class Parser:
 
     if res.error:
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         "Expected 'var', 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'not'"
       ))
 
@@ -165,7 +165,7 @@ class Parser:
     
     if res.error:
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         "Expected int, float, identifier, '+', '-', '(', '[', 'if', 'for', 'while', 'def' or 'not'"
       ))
 
@@ -210,7 +210,7 @@ class Parser:
         arg_nodes.append(res.register(self.expr()))
         if res.error:
           return res.failure(InvalidSyntaxError(
-            self.currentTk.pos_start, self.currentTk.pos_end,
+            self.currentTk.pStart, self.currentTk.pEnd,
             "Expected ')', 'var', 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'not'"
           ))
 
@@ -223,7 +223,7 @@ class Parser:
 
         if self.currentTk.type != Tk_Rparen:
           return res.failure(InvalidSyntaxError(
-            self.currentTk.pos_start, self.currentTk.pos_end,
+            self.currentTk.pStart, self.currentTk.pEnd,
             f"Expected ',' or ')'"
           ))
 
@@ -262,7 +262,7 @@ class Parser:
         return res.success(expr)
       else:
         return res.failure(InvalidSyntaxError(
-          self.currentTk.pos_start, self.currentTk.pos_end,
+          self.currentTk.pStart, self.currentTk.pEnd,
           "Expected ')'"
         ))
 
@@ -292,18 +292,18 @@ class Parser:
       return res.success(func_def)
 
     return res.failure(InvalidSyntaxError(
-      tok.pos_start, tok.pos_end,
+      tok.pStart, tok.pEnd,
       "Expected int, float, identifier, '+', '-', '(', '[', IF', 'for', 'while', 'def'"
     ))
 
   def list_expr(self):
     res = ParseResult()
     element_nodes = []
-    pos_start = self.currentTk.pos_start.copy()
+    pStart = self.currentTk.pStart.copy()
 
     if self.currentTk.type != Tk_Lbracket:
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected '['"
       ))
 
@@ -317,7 +317,7 @@ class Parser:
       element_nodes.append(res.register(self.expr()))
       if res.error:
         return res.failure(InvalidSyntaxError(
-          self.currentTk.pos_start, self.currentTk.pos_end,
+          self.currentTk.pStart, self.currentTk.pEnd,
           "Expected ']', 'var', 'if', 'for', 'while', 'def', int, float, identifier, '+', '-', '(', '[' or 'not'"
         ))
 
@@ -330,7 +330,7 @@ class Parser:
 
       if self.currentTk.type != Tk_RBracket:
         return res.failure(InvalidSyntaxError(
-          self.currentTk.pos_start, self.currentTk.pos_end,
+          self.currentTk.pStart, self.currentTk.pEnd,
           f"Expected ',' or ']'"
         ))
 
@@ -339,8 +339,8 @@ class Parser:
 
     return res.success(ListNode(
       element_nodes,
-      pos_start,
-      self.currentTk.pos_end.copy()
+      pStart,
+      self.currentTk.pEnd.copy()
     ))
 
   def if_expr(self):
@@ -374,7 +374,7 @@ class Parser:
           self.advance()
         else:
           return res.failure(InvalidSyntaxError(
-            self.currentTk.pos_start, self.currentTk.pos_end,
+            self.currentTk.pStart, self.currentTk.pEnd,
             "Expected 'END'"
           ))
       else:
@@ -405,7 +405,7 @@ class Parser:
 
     if not self.currentTk.matches(Tk_keyword, case_keyword):
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected '{case_keyword}'"
       ))
 
@@ -417,7 +417,7 @@ class Parser:
 
     if not self.currentTk.matches(Tk_keyword, 'then'):
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected 'THEN'"
       ))
 
@@ -457,7 +457,7 @@ class Parser:
 
     if not self.currentTk.matches(Tk_keyword, 'for'):
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected 'for'"
       ))
 
@@ -466,7 +466,7 @@ class Parser:
 
     if self.currentTk.type != Tk_identifier:
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected identifier"
       ))
 
@@ -476,7 +476,7 @@ class Parser:
 
     if self.currentTk.type != Tk_Equals:
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected '='"
       ))
     
@@ -488,7 +488,7 @@ class Parser:
 
     if not self.currentTk.matches(Tk_keyword, 'to'):
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected 'TO'"
       ))
     
@@ -509,7 +509,7 @@ class Parser:
 
     if not self.currentTk.matches(Tk_keyword, 'then'):
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected 'THEN'"
       ))
 
@@ -525,7 +525,7 @@ class Parser:
 
       if not self.currentTk.matches(Tk_keyword, 'end'):
         return res.failure(InvalidSyntaxError(
-          self.currentTk.pos_start, self.currentTk.pos_end,
+          self.currentTk.pStart, self.currentTk.pEnd,
           f"Expected 'END'"
         ))
 
@@ -544,7 +544,7 @@ class Parser:
 
     if not self.currentTk.matches(Tk_keyword, 'while'):
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected 'while'"
       ))
 
@@ -556,7 +556,7 @@ class Parser:
 
     if not self.currentTk.matches(Tk_keyword, 'then'):
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected 'THEN'"
       ))
 
@@ -572,7 +572,7 @@ class Parser:
 
       if not self.currentTk.matches(Tk_keyword, 'end'):
         return res.failure(InvalidSyntaxError(
-          self.currentTk.pos_start, self.currentTk.pos_end,
+          self.currentTk.pStart, self.currentTk.pEnd,
           f"Expected 'END'"
         ))
 
@@ -591,7 +591,7 @@ class Parser:
 
     if not self.currentTk.matches(Tk_keyword, 'def'):
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected 'def'"
       ))
 
@@ -604,14 +604,14 @@ class Parser:
       self.advance()
       if self.currentTk.type != Tk_Lparen:
         return res.failure(InvalidSyntaxError(
-          self.currentTk.pos_start, self.currentTk.pos_end,
+          self.currentTk.pStart, self.currentTk.pEnd,
           f"Expected '('"
         ))
     else:
       var_name_tok = None
       if self.currentTk.type != Tk_Lparen:
         return res.failure(InvalidSyntaxError(
-          self.currentTk.pos_start, self.currentTk.pos_end,
+          self.currentTk.pStart, self.currentTk.pEnd,
           f"Expected identifier or '('"
         ))
     
@@ -630,7 +630,7 @@ class Parser:
 
         if self.currentTk.type != Tk_identifier:
           return res.failure(InvalidSyntaxError(
-            self.currentTk.pos_start, self.currentTk.pos_end,
+            self.currentTk.pStart, self.currentTk.pEnd,
             f"Expected identifier"
           ))
 
@@ -640,13 +640,13 @@ class Parser:
       
       if self.currentTk.type != Tk_Rparen:
         return res.failure(InvalidSyntaxError(
-          self.currentTk.pos_start, self.currentTk.pos_end,
+          self.currentTk.pStart, self.currentTk.pEnd,
           f"Expected ',' or ')'"
         ))
     else:
       if self.currentTk.type != Tk_Rparen:
         return res.failure(InvalidSyntaxError(
-          self.currentTk.pos_start, self.currentTk.pos_end,
+          self.currentTk.pStart, self.currentTk.pEnd,
           f"Expected identifier or ')'"
         ))
 
@@ -669,7 +669,7 @@ class Parser:
     
     if self.currentTk.type != Tk_Newline:
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected '->' or NEWLINE"
       ))
 
@@ -681,7 +681,7 @@ class Parser:
 
     if not self.currentTk.matches(Tk_keyword, 'end'):
       return res.failure(InvalidSyntaxError(
-        self.currentTk.pos_start, self.currentTk.pos_end,
+        self.currentTk.pStart, self.currentTk.pEnd,
         f"Expected 'END'"
       ))
 
