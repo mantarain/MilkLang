@@ -2,6 +2,7 @@
 #| Imports |#
 
 from src.lexer import Lexer
+from src.parse import Parser
 
 """
 from parser import Parser
@@ -59,4 +60,9 @@ def run(fn, text):
     tokens, error = lexer.tokenise()
     if error: return None, error
 
-    return tokens, None
+    # Gen ast
+    parser = Parser(tokens)
+    ast = parser.parse()
+    if ast.error: return None, ast.error
+
+    return ast.node, None
