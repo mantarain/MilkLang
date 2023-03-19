@@ -3,12 +3,9 @@
 
 from src.lexer import Lexer
 from src.parse import Parser
+from src.interp import Interpreter
+from src.values import *
 
-"""
-from parser import Parser
-from interpreter import Interpreter
-from values import *
-"""
 
 #| Variable Table (Symbol Table) Class |#
 
@@ -30,7 +27,7 @@ class SymbolTable:
         del self.symbols[name]
 
 #| Builtin Funcs and Vars |#
-"""
+
 global_symbol_table = SymbolTable()
 global_symbol_table.set("Null", Number.null) # type: ignore
 global_symbol_table.set("False", Number.false) # type: ignore
@@ -50,7 +47,7 @@ global_symbol_table.set("append", BuiltInFunction.append) # type: ignore
 global_symbol_table.set("pop", BuiltInFunction.pop) # type: ignore
 global_symbol_table.set("extend", BuiltInFunction.extend) # type: ignore
 global_symbol_table.set("len", BuiltInFunction.len) # type: ignore
-global_symbol_table.set("run", BuiltInFunction.run) # type: ignore"""
+global_symbol_table.set("run", BuiltInFunction.run) # type: ignore
 
 #| Run |#
 
@@ -65,4 +62,10 @@ def run(fn, text):
     ast = parser.parse()
     if ast.error: return None, ast.error
 
-    return ast.node, None
+    # Run the code
+    interpreter = Interpreter()
+    context = Context("<Program>")
+    context.symbolTable = global_symbol_table # type: ignore
+    result = interpreter.visit(ast.node, context)
+
+    return result.value, result.error

@@ -3,7 +3,7 @@
 #######################################
 
 from src.interpreter.runtimeResult import RTResult
-from src.values import List, Number, String, Function
+from src.values import *
 from src.main.tokens import *
 from src.main.error import RTError
 
