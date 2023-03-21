@@ -1,0 +1,6 @@
+
+func a(b);
+    if a == b then;
+        print("true")
+    end
+end
