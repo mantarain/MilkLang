@@ -4,7 +4,7 @@
 
 from libs.strwtars import string_with_arrows # type: ignore
 
-import string_
+import string
 import os
 import math
 
@@ -13,7 +13,7 @@ import math
 #######################################
 
 DIGITS = '0123456789'
-LETTERS = string_.ascii_letters
+LETTERS = string.ascii_letters
 LETTERS_DIGITS = LETTERS + DIGITS
 
 #######################################
@@ -279,7 +279,7 @@ class Lexer:
             return Token(TT_FLOAT, float(num_str), pos_start, self.pos)
 
     def make_string(self):
-        string_ = ''
+        string = ''
         pos_start = self.pos.copy()
         escape_character = False
         self.advance()
@@ -291,18 +291,18 @@ class Lexer:
 
         while self.current_char != None and (self.current_char != '"' or escape_character):
             if escape_character:
-                string_ += escape_characters.get(self.current_char,
+                string += escape_characters.get(self.current_char,
                                                 self.current_char)
             else:
                 if self.current_char == '\\':
                     escape_character = True
                 else:
-                    string_ += self.current_char
+                    string += self.current_char
             self.advance()
             escape_character = False
 
         self.advance()
-        return Token(TT_STRING, string_, pos_start, self.pos)
+        return Token(TT_STRING, string, pos_start, self.pos)
 
     def make_identifier(self):
         id_str = ''
@@ -1920,7 +1920,7 @@ class BuiltInFunction(BaseFunction):
         if not isinstance(fn, String):
             return RTResult().failure(RTError(
                 self.pos_start, self.pos_end,
-                "Second argument must be string_",
+                "Second argument must be string",
                 exec_ctx
             ))
 
