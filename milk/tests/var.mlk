@@ -1,0 +1,8 @@
+VAR num = 1
+VAR float = 0.5
+VAR unary = -5
+VAR str = "variable tests"
+VAR list = [1, 5, "three", 7]
+
+VAR vars = [num, float, unary, str, list]
+PRINT(vars)
