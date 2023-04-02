@@ -2,7 +2,7 @@
 # IMPORTS
 #######################################
 
-from libs.strwtars import string_with_arrows # type: ignore
+from libs.strwtars import string_with_arrows
 
 import string
 import os
@@ -2178,7 +2178,7 @@ global_symbol_table.set("APPEND", BuiltInFunction.append)
 global_symbol_table.set("POP", BuiltInFunction.pop)
 global_symbol_table.set("EXTEND", BuiltInFunction.extend)
 global_symbol_table.set("LEN", BuiltInFunction.len)
-global_symbol_table.set("RUN", BuiltInFunction.run) # type: ignore
+global_symbol_table.set("RUN", BuiltInFunction.run)
 
 def run(fn, text):
   # Generate tokens
