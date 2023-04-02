@@ -469,7 +469,6 @@ class IfNode:
 class ForNode:
   def __init__(self, var_name_tok, end_value_node, step_value_node, body_node, should_return_null):
     self.var_name_tok = var_name_tok
-    self.start_value_node = 0
     self.end_value_node = end_value_node
     self.step_value_node = step_value_node
     self.body_node = body_node
@@ -1059,11 +1058,24 @@ class Parser:
         self.current_tok.pos_start, self.current_tok.pos_end,
         "Expected '('"
       ))
+
+    res.register_advancement()
+    self.advance()
     
     # Get number for amount of loops/iterations
 
-    Iters = res.register(self.expr())
-    if res.error: return res
+    if self.current_tok.type != TT_INT:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected 'int' for loop amount"
+      ))
+    
+    # Get Value
+
+    Iters = NumberNode(self.current_tok)
+
+    res.register_advancement()
+    self.advance()
 
     # Check for Comma
 
@@ -1076,22 +1088,23 @@ class Parser:
       if self.current_tok.type != TT_INT:
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
-          "Expected 'int' for step number in loop"
+          "Expected 'int' for step amount"
         ))
       
-      # Find and check value
-      
-      step = res.register(self.expr())
-      if res.error: return res
+      # Get Value
+      step = NumberNode(self.current_tok)
+
+      res.register_advancement()
+      self.advance()
     
     # Check for Right Parenth
 
     if self.current_tok.type != TT_RPAREN:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected ')'"
+        "Expected ')', or ','"
       ))
-    
+  
     res.register_advancement()
     self.advance()
 
@@ -1139,6 +1152,9 @@ class Parser:
         self.current_tok.pos_start, self.current_tok.pos_end,
         "Expected '}'"
       ))
+    
+    res.register_advancement()
+    self.advance()
 
     return res.success(ForNode(var_name, Iters, step, body, False))
 
@@ -2111,9 +2127,6 @@ class Interpreter:
     res = RTResult()
     elements = []
 
-    start_value = res.register(self.visit(node.start_value_node, context))
-    if res.should_return(): return res
-
     end_value = res.register(self.visit(node.end_value_node, context))
     if res.should_return(): return res
 
@@ -2123,7 +2136,7 @@ class Interpreter:
     else:
       step_value = Number(1)
 
-    i = start_value.value
+    i = 0
 
     if step_value.value >= 0:
       condition = lambda: i < end_value.value
