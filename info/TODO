@@ -1,0 +1,10 @@
+Main Parts:
+
+    Syntax:
+        ☐ brace: func, if, for, while
+
+    Vars:
+        ☐ Access/Change var value without redefining
+        ☐ Create dict type
+        ☐ Add "types" keyword for adding tags
+        ☐ Add "params" keyword for adding custom value tags
