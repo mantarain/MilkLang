@@ -467,12 +467,12 @@ class IfNode:
     self.pos_end = (self.else_case or self.cases[len(self.cases) - 1])[0].pos_end
 
 class ForNode:
-  def __init__(self, var_name_tok, end_value_node, step_value_node, body_node, should_return_null):
+  def __init__(self, var_name_tok, end_value_node, step_value_node, body_node):
     self.var_name_tok = var_name_tok
     self.end_value_node = end_value_node
     self.step_value_node = step_value_node
     self.body_node = body_node
-    self.should_return_null = should_return_null
+    self.should_return_null = True
 
     self.pos_start = self.var_name_tok.pos_start
     self.pos_end = self.body_node.pos_end
@@ -1016,6 +1016,7 @@ class Parser:
 
   def for_expr(self):
     res = ParseResult()
+    hasStep = False
     step = 1
     # Keyword: for
 
@@ -1093,6 +1094,7 @@ class Parser:
       
       # Get Value
       step = NumberNode(self.current_tok)
+      hasStep = True
 
       res.register_advancement()
       self.advance()
@@ -1107,6 +1109,9 @@ class Parser:
   
     res.register_advancement()
     self.advance()
+
+    if not hasStep:
+      step = False
 
     # Open Brace
 
@@ -1140,7 +1145,7 @@ class Parser:
       res.register_advancement()
       self.advance()
 
-      return res.success(ForNode(var_name, Iters, step, body, True))
+      return res.success(ForNode(var_name, Iters, step, body))
     
     # Get looop body
 
@@ -1156,7 +1161,7 @@ class Parser:
     res.register_advancement()
     self.advance()
 
-    return res.success(ForNode(var_name, Iters, step, body, False))
+    return res.success(ForNode(var_name, Iters, step, body))
 
   def while_expr(self):
     res = ParseResult()
@@ -1576,6 +1581,7 @@ class Number(Value):
     return str(self.value)
 
 Number.null = Number(0)
+Number.none = Number("")
 Number.false = Number(0)
 Number.true = Number(1)
 Number.pi = Number(math.pi)
@@ -1936,7 +1942,7 @@ class BuiltInFunction(BaseFunction):
         exec_ctx
       ))
 
-    return RTResult().success(Number.null)
+    return RTResult().success(Number.none)
   execute_run.arg_names = ["fn"]
 
 BuiltInFunction.print       = BuiltInFunction("print")
@@ -2159,7 +2165,6 @@ class Interpreter:
       elements.append(value)
 
     return res.success(
-      Number.null if node.should_return_null else
       List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
     )
 
