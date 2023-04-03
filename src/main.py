@@ -477,6 +477,15 @@ class ForNode:
     self.pos_start = self.var_name_tok.pos_start
     self.pos_end = self.body_node.pos_end
 
+class ForInNode:
+  def __init__(self, var_name_tok, list_tok, body_node):
+    self.var_name_tok = var_name_tok
+    self.list_tok = list_tok
+    self.body_node = body_node
+
+    self.pos_start = self.var_name_tok.pos_start
+    self.pos_end = self.body_node.pos_end
+
 class WhileNode:
   def __init__(self, condition_node, body_node, should_return_null):
     self.condition_node = condition_node
@@ -1043,116 +1052,157 @@ class Parser:
 
     # Keyword: loop
 
-    if not self.current_tok.matches(TT_KEYWORD, 'loop'):
-      return res.failure(InvalidSyntaxError(
-        self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected keyword: 'loop'"
-      ))
-    
-    res.register_advancement()
-    self.advance()
-
-    # Left Parenth
-
-    if self.current_tok.type != TT_LPAREN:
-      return res.failure(InvalidSyntaxError(
-        self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected '('"
-      ))
-
-    res.register_advancement()
-    self.advance()
-    
-    # Get number for amount of loops/iterations
-
-    if self.current_tok.type != TT_INT:
-      return res.failure(InvalidSyntaxError(
-        self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected 'int' for loop amount"
-      ))
-    
-    # Get Value
-
-    Iters = NumberNode(self.current_tok)
-
-    res.register_advancement()
-    self.advance()
-
-    # Check for Comma
-
-    if self.current_tok.type == TT_COMMA:
+    if self.current_tok.matches(TT_KEYWORD, 'loop'):
+      
       res.register_advancement()
       self.advance()
 
-      # Check for int number
+      # Left Parenth
+
+      if self.current_tok.type != TT_LPAREN:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          "Expected '('"
+        ))
+
+      res.register_advancement()
+      self.advance()
+      
+      # Get number for amount of loops/iterations
 
       if self.current_tok.type != TT_INT:
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
-          "Expected 'int' for step amount"
+          "Expected 'int' for loop amount"
         ))
       
       # Get Value
-      step = NumberNode(self.current_tok)
-      hasStep = True
+
+      Iters = NumberNode(self.current_tok)
 
       res.register_advancement()
       self.advance()
+
+      # Check for Comma
+
+      if self.current_tok.type == TT_COMMA:
+        res.register_advancement()
+        self.advance()
+
+        # Check for int number
+
+        if self.current_tok.type != TT_INT:
+          return res.failure(InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            "Expected 'int' for step amount"
+          ))
+        
+        # Get Value
+        step = NumberNode(self.current_tok)
+        hasStep = True
+
+        res.register_advancement()
+        self.advance()
+      
+      # Check for Right Parenth
+
+      if self.current_tok.type != TT_RPAREN:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          "Expected ')', or ','"
+        ))
     
-    # Check for Right Parenth
-
-    if self.current_tok.type != TT_RPAREN:
-      return res.failure(InvalidSyntaxError(
-        self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected ')', or ','"
-      ))
-  
-    res.register_advancement()
-    self.advance()
-
-    if not hasStep:
-      step = False
-
-    # Open Brace
-
-    if self.current_tok.type != TT_LBRACE:
-      return res.failure(InvalidSyntaxError(
-        self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected '{'"
-      ))
-
-    res.register_advancement()
-    self.advance()
-
-    if self.current_tok.type == TT_NEWLINE:
       res.register_advancement()
       self.advance()
 
-      # Get the loop body
+      if not hasStep:
+        step = False
 
-      body = res.register(self.statements())
+      # Open Brace
+
+      if self.current_tok.type != TT_LBRACE:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          "Expected '{'"
+        ))
+
+      res.register_advancement()
+      self.advance()
+
+      if self.current_tok.type == TT_NEWLINE:
+        res.register_advancement()
+        self.advance()
+
+        # Get the loop body
+
+        body = res.register(self.statements())
+        if res.error: return res
+
+
+        # Close Brace
+
+        if self.current_tok.type != TT_RBRACE:
+          return res.failure(InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            "Expected '}'"
+          ))
+
+        res.register_advancement()
+        self.advance()
+
+        return res.success(ForNode(var_name, Iters, step, body))
+      
+      # Get looop body
+
+      body = res.register(self.statement())
       if res.error: return res
-
-
-      # Close Brace
 
       if self.current_tok.type != TT_RBRACE:
         return res.failure(InvalidSyntaxError(
           self.current_tok.pos_start, self.current_tok.pos_end,
           "Expected '}'"
         ))
-
+      
       res.register_advancement()
       self.advance()
 
       return res.success(ForNode(var_name, Iters, step, body))
-    
-    # Get looop body
 
-    body = res.register(self.statement())
+    if not self.current_tok.matches(TT_KEYWORD, 'in'):
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected keyword: 'in' "
+      ))
+    
+    res.register_advancement()
+    self.advance()
+    
+    if not self.current_tok.type == TT_IDENTIFIER:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected keyword: 'loop' or list name"
+      ))
+    
+    varList = res.register(self.expr())
     if res.error: return res
 
-    if self.current_tok.type != TT_RBRACE:
+    # Open brace
+
+    if not self.current_tok.type == TT_LBRACE:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected '{'"
+      ))
+    
+    res.register_advancement()
+    self.advance()
+
+    body = res.register(self.statements())
+    if res.error: return res
+
+    # Close Brace
+
+    if not self.current_tok.type == TT_RBRACE:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
         "Expected '}'"
@@ -1160,8 +1210,8 @@ class Parser:
     
     res.register_advancement()
     self.advance()
-
-    return res.success(ForNode(var_name, Iters, step, body))
+    
+    return res.success(ForInNode(var_name, varList, body))
 
   def while_expr(self):
     res = ParseResult()
@@ -2164,6 +2214,41 @@ class Interpreter:
 
       elements.append(value)
 
+    return res.success(
+      List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
+    )
+  
+  def visit_ForInNode(self, node, context):
+    res = RTResult()
+    elements = []
+
+    end_value = res.register(self.visit(node.list_tok, context))
+    if res.should_return(): return res
+
+    list_ = end_value.elements
+    end_value = len(list_)
+    var = ""
+    i = 0
+
+    condition = lambda: i < end_value
+    
+    while condition():
+      var = list_[i]
+
+      context.symbol_table.set(node.var_name_tok.value, var)
+      i += 1
+
+      value = res.register(self.visit(node.body_node, context))
+      if res.should_return() and res.loop_should_continue == False and res.loop_should_break == False: return res
+      
+      if res.loop_should_continue:
+        continue
+      
+      if res.loop_should_break:
+        break
+
+      elements.append(value)
+    
     return res.success(
       List(elements).set_context(context).set_pos(node.pos_start, node.pos_end)
     )
