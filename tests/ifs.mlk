@@ -1,0 +1,17 @@
+# change values in if statements and var to expirement
+
+let apples = 0
+
+if apples > 0 {
+
+    print("You Have Apples!")
+
+} elif apples < 0 {
+
+    print("More Apples!")
+
+} else {
+
+    print("APPLES!!!!")
+
+}

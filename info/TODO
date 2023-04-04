@@ -1,4 +1,6 @@
 Main Parts:
+    ☐ Add forced extension recognision for external files (files have to have .mlk)
+    ☐ Add version reader to automatically print at start-up of terminal
 
     Syntax:
         ☐ brace: func, if, for, while
