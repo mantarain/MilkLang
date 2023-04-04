@@ -1297,22 +1297,22 @@ class Parser:
     res.register_advancement()
     self.advance()
 
-    if self.current_tok.type == TT_IDENTIFIER:
-      var_name_tok = self.current_tok
-      res.register_advancement()
-      self.advance()
-      if self.current_tok.type != TT_LPAREN:
-        return res.failure(InvalidSyntaxError(
-          self.current_tok.pos_start, self.current_tok.pos_end,
-          f"Expected '('"
-        ))
-    else:
-      var_name_tok = None
-      if self.current_tok.type != TT_LPAREN:
-        return res.failure(InvalidSyntaxError(
-          self.current_tok.pos_start, self.current_tok.pos_end,
-          f"Expected identifier or '('"
-        ))
+    if self.current_tok.type != TT_IDENTIFIER:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected identifier"
+      ))
+
+    var_name_tok = self.current_tok
+    res.register_advancement()
+    self.advance()
+
+    if self.current_tok.type != TT_LPAREN:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        f"Expected '('"
+      ))
+    
     
     res.register_advancement()
     self.advance()
@@ -1330,7 +1330,7 @@ class Parser:
         if self.current_tok.type != TT_IDENTIFIER:
           return res.failure(InvalidSyntaxError(
             self.current_tok.pos_start, self.current_tok.pos_end,
-            f"Expected identifier"
+            f"Expected parameter"
           ))
 
         arg_name_toks.append(self.current_tok)
@@ -1342,6 +1342,7 @@ class Parser:
           self.current_tok.pos_start, self.current_tok.pos_end,
           f"Expected ',' or ')'"
         ))
+    
     else:
       if self.current_tok.type != TT_RPAREN:
         return res.failure(InvalidSyntaxError(
@@ -1352,46 +1353,41 @@ class Parser:
     res.register_advancement()
     self.advance()
 
-    if self.current_tok.type == TT_ARROW:
+    if self.current_tok.type != TT_LBRACE:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected '{'"
+      ))
+    
+    res.register_advancement()
+    self.advance()
+
+    if self.current_tok.type == TT_NEWLINE:
       res.register_advancement()
       self.advance()
 
-      body = res.register(self.expr())
-      if res.error: return res
 
-      return res.success(FuncDefNode(
-        var_name_tok,
-        arg_name_toks,
-        body,
-        True
-      ))
-    
-    if self.current_tok.type != TT_NEWLINE:
-      return res.failure(InvalidSyntaxError(
-        self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected '->' or NEWLINE"
-      ))
-
-    res.register_advancement()
-    self.advance()
-
-    body = res.register(self.statements())
+    body = res.register(self.statement())
     if res.error: return res
 
-    if not self.current_tok.matches(TT_KEYWORD, 'end'):
-      return res.failure(InvalidSyntaxError(
-        self.current_tok.pos_start, self.current_tok.pos_end,
-        f"Expected 'end'"
-      ))
+    if self.current_tok.type == TT_NEWLINE:
+      res.register_advancement()
+      self.advance()
+
+    if self.current_tok.type != TT_RBRACE:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          "Expected '}'"
+        ))
 
     res.register_advancement()
     self.advance()
-    
+
     return res.success(FuncDefNode(
       var_name_tok,
       arg_name_toks,
       body,
-      False
+      True
     ))
 
   ###################################
