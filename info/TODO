@@ -3,7 +3,7 @@ Main Parts:
     ☐ Add version reader to automatically print at start-up of terminal
 
     Syntax:
-        ☐ brace: func, if, for, while
+        ✔ brace: func, if, for, while @done(23-04-05 09:31)
 
     Vars:
         ☐ Access/Change var value without redefining

@@ -102,11 +102,19 @@ TT_FLOAT    	= 'FLOAT'
 TT_STRING			= 'STRING'
 TT_IDENTIFIER	= 'IDENTIFIER'
 TT_KEYWORD		= 'KEYWORD'
+
 TT_PLUS     	= 'PLUS'
 TT_MINUS    	= 'MINUS'
 TT_MUL      	= 'MUL'
 TT_DIV      	= 'DIV'
 TT_POW				= 'POW'
+
+TT_PEQ        = 'PEQ'
+TT_MEQ        = 'MEQ'
+TT_DEQ        = 'DEQ'
+TT_MTEQ       = 'MTEQ'
+TT_POEQ       = 'POEQ'
+
 TT_EQ					= 'EQ'
 TT_LPAREN   	= 'LPAREN'
 TT_RPAREN   	= 'RPAREN'
@@ -114,14 +122,15 @@ TT_LSQUARE    = 'LSQUARE'
 TT_RSQUARE    = 'RSQUARE'
 TT_LBRACE     = 'LBRACE'
 TT_RBRACE     = 'RBRACE'
+
 TT_EE					= 'EE'
 TT_NE					= 'NE'
 TT_LT					= 'LT'
 TT_GT					= 'GT'
 TT_LTE				= 'LTE'
 TT_GTE				= 'GTE'
+
 TT_COMMA			= 'COMMA'
-TT_ARROW			= 'ARROW'
 TT_NEWLINE		= 'NEWLINE'
 TT_EOF				= 'EOF'
 
@@ -205,22 +214,22 @@ class Lexer:
         tokens.append(self.make_string())
 
       elif self.current_char == '+':
-        tokens.append(Token(TT_PLUS, pos_start=self.pos))
+        tokens.append(self.make_plus())
         self.advance()
 
       elif self.current_char == '-':
-        tokens.append(self.make_minus_or_arrow())
+        tokens.append(self.make_minus())
 
       elif self.current_char == '*':
-        tokens.append(Token(TT_MUL, pos_start=self.pos))
+        tokens.append(self.make_mul())
         self.advance()
 
       elif self.current_char == '/':
-        tokens.append(Token(TT_DIV, pos_start=self.pos))
+        tokens.append(self.make_div())
         self.advance()
 
       elif self.current_char == '^':
-        tokens.append(Token(TT_POW, pos_start=self.pos))
+        tokens.append(self.make_pow())
         self.advance()
 
       elif self.current_char == '(':
@@ -326,14 +335,53 @@ class Lexer:
     tok_type = TT_KEYWORD if id_str in KEYWORDS else TT_IDENTIFIER
     return Token(tok_type, id_str, pos_start, self.pos)
 
-  def make_minus_or_arrow(self):
+  def make_minus(self):
     tok_type = TT_MINUS
     pos_start = self.pos.copy()
     self.advance()
 
-    if self.current_char == '>':
-      self.advance()
-      tok_type = TT_ARROW
+    if self.current_char == "=":
+      tok_type = TT_MEQ
+
+    return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+  
+  def make_plus(self):
+    tok_type = TT_PLUS
+    pos_start = self.pos.copy()
+    self.advance()
+
+    if self.current_char == "=":
+      tok_type = TT_PEQ
+
+    return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+  
+  def make_mul(self):
+    tok_type = TT_MUL
+    pos_start = self.pos.copy()
+    self.advance()
+
+    if self.current_char == "=":
+      tok_type = TT_MTEQ
+
+    return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+  
+  def make_div(self):
+    tok_type = TT_DIV
+    pos_start = self.pos.copy()
+    self.advance()
+
+    if self.current_char == "=":
+      tok_type = TT_DEQ
+    
+    return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+  
+  def make_pow(self):
+    tok_type = TT_POW
+    pos_start = self.pos.copy()
+    self.advance()
+
+    if self.current_char == "=":
+      tok_type = TT_POEQ
 
     return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
 
@@ -426,6 +474,15 @@ class VarAccessNode:
 
     self.pos_start = self.var_name_tok.pos_start
     self.pos_end = self.var_name_tok.pos_end
+
+class VarModifNode:
+  def __init__(self, var_name_tok, modifier):
+    self.var_name_tok = var_name_tok
+    self.modifier = modifier
+
+    self.pos_start = self.var_name_tok.pos_start
+    self.pos_end = self.var_name_tok.pos_end
+
 
 class VarAssignNode:
   def __init__(self, var_name_tok, value_node):
@@ -820,6 +877,10 @@ class Parser:
     elif tok.type == TT_IDENTIFIER:
       res.register_advancement()
       self.advance()
+
+      if self.current_tok.type in ():
+        pass
+
       return res.success(VarAccessNode(tok))
 
     elif tok.type == TT_LPAREN:
