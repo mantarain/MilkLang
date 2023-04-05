@@ -102,6 +102,7 @@ TT_FLOAT    	= 'FLOAT'
 TT_STRING			= 'STRING'
 TT_IDENTIFIER	= 'IDENTIFIER'
 TT_KEYWORD		= 'KEYWORD'
+TT_VARMODIF   = 'VARMOD'
 
 TT_PLUS     	= 'PLUS'
 TT_MINUS    	= 'MINUS'
@@ -219,6 +220,7 @@ class Lexer:
 
       elif self.current_char == '-':
         tokens.append(self.make_minus())
+        self.advance()
 
       elif self.current_char == '*':
         tokens.append(self.make_mul())
@@ -476,9 +478,10 @@ class VarAccessNode:
     self.pos_end = self.var_name_tok.pos_end
 
 class VarModifNode:
-  def __init__(self, var_name_tok, modifier):
+  def __init__(self, var_name_tok, modif, value):
     self.var_name_tok = var_name_tok
-    self.modifier = modifier
+    self.modif = modif
+    self.value = value
 
     self.pos_start = self.var_name_tok.pos_start
     self.pos_end = self.var_name_tok.pos_end
@@ -878,8 +881,31 @@ class Parser:
       res.register_advancement()
       self.advance()
 
-      if self.current_tok.type in ():
-        pass
+      if self.current_tok.type in (TT_PEQ, TT_MEQ, TT_DEQ, TT_MTEQ, TT_POEQ):
+        modif = self.current_tok
+
+        res.register_advancement()
+        self.advance()
+
+        val = NumberNode(self.current_tok)
+
+        res.register_advancement()
+        self.advance()
+
+        return res.success(VarModifNode(tok, modif, val))
+      
+      elif self.current_tok.type == TT_EQ:
+        modif = TT_VARMODIF
+
+        res.register_advancement()
+        self.advance()
+
+        val = NumberNode(self.current_tok)
+
+        res.register_advancement()
+        self.advance()
+
+        return res.success(VarModifNode(tok, modif, val))
 
       return res.success(VarAccessNode(tok))
 
@@ -2184,6 +2210,53 @@ class Interpreter:
 
     context.symbol_table.set(var_name, value)
     return res.success(value)
+  
+  def visit_VarModifNode(self, node, context):
+    res = RTResult()
+    var_name = node.var_name_tok.value
+    value = context.symbol_table.get(var_name)
+    value_modifier = res.register(self.visit(node.value, context))
+    if res.should_return(): return res
+
+    if not value:
+      return res.failure(RTError(
+        node.pos_start, node.pos_end,
+        f"'{var_name}' is not defined",
+        context
+      ))
+
+    value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
+
+    type_modifier = node.modif
+
+    if type_modifier == TT_VARMODIF:
+      value = value_modifier
+
+    if not type_modifier == TT_VARMODIF:
+      type_modifier = node.modif.type
+
+    elif type_modifier == TT_PEQ:
+      value = value.added_to(value_modifier)
+    
+    elif type_modifier == TT_MEQ:
+      value = value.subbed_by(value_modifier)
+    
+    elif type_modifier == TT_DEQ:
+      value = value.dived_by(value_modifier)
+    
+    elif type_modifier == TT_MTEQ:
+      value = value.multed_by(value_modifier)
+    
+    elif type_modifier == TT_POEQ:
+      value = value.powed_by(value_modifier)
+    
+    if not type_modifier == TT_VARMODIF:
+      value = value[0]
+    
+    context.symbol_table.set(var_name, value)
+    
+    return res.success(value)
+
 
   def visit_BinOpNode(self, node, context):
     res = RTResult()
