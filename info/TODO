@@ -10,3 +10,9 @@ Main Parts:
         ☐ Create dict type
         ☐ Add "types" keyword for adding tags
         ☐ Add "params" keyword for adding custom value tags
+
+        Objects:
+            ☐ Create object with nothing in
+            ☐ Create type() func to return object type
+            ☐ Create built-in objects, define str, int vars with these
+            ☐ Create custom objects, with custom funcs and vars
