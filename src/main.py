@@ -132,11 +132,13 @@ TT_LTE				= 'LTE'
 TT_GTE				= 'GTE'
 
 TT_COMMA			= 'COMMA'
+TT_DOT        = 'DOT'
 TT_NEWLINE		= 'NEWLINE'
 TT_EOF				= 'EOF'
 
 KEYWORDS = [
   'let',
+  'struct',
   'and',
   'or',
   'not',
@@ -275,6 +277,11 @@ class Lexer:
       elif self.current_char == ',':
         tokens.append(Token(TT_COMMA, pos_start=self.pos))
         self.advance()
+
+      elif self.current_char == '.':
+        tokens.append(Token(TT_DOT, pos_start=self.pos))
+        self.advance()
+
       else:
         pos_start = self.pos.copy()
         char = self.current_char
@@ -599,6 +606,23 @@ class BreakNode:
   def __init__(self, pos_start, pos_end):
     self.pos_start = pos_start
     self.pos_end = pos_end
+
+class ClassDefNode:
+  def __init__(self, varName, body, init):
+    self.varName = varName
+    self.body = body
+    self.init = init
+
+    self.pos_start = self.varName.pos_start
+    self.pos_end = self.body.pos_end
+  
+class ClassAccessNode:
+  def __init__(self, varName, args):
+    self.varName = varName
+    self.args = args
+
+    self.pos_start = self.varName.pos_start
+    self.pos_end = self.args.pos_end
 
 #######################################
 # PARSE RESULT
@@ -948,6 +972,11 @@ class Parser:
       func_def = res.register(self.func_def())
       if res.error: return res
       return res.success(func_def)
+    
+    elif tok.matches(TT_KEYWORD, 'struct'):
+      class_def = res.register(self.class_def())
+      if res.error: return res
+      return res.success(class_def)
 
     return res.failure(InvalidSyntaxError(
       tok.pos_start, tok.pos_end,
@@ -1476,6 +1505,60 @@ class Parser:
       body,
       True
     ))
+  
+  def class_def(self):
+    res = ParseResult()
+    
+    if not self.current_tok.matches(TT_KEYWORD, 'struct'):
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected keyword: 'struct'"
+      ))
+    
+    res.register_advancement()
+    self.advance()
+
+    if not self.current_tok.type == TT_IDENTIFIER:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected identifier"
+      ))
+    
+    varName = self.current_tok
+    res.register_advancement()
+    self.advance()
+
+    if self.current_tok.type != TT_LBRACE:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected '{'"
+      ))
+    
+    res.register_advancement()
+    self.advance()
+
+    if not self.current_tok.matches(TT_KEYWORD, 'func'):
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected keyword: 'func'"
+      ))
+    
+    initFunc = res.register(self.func_def())
+    if res.error: return res
+
+    body = res.register(self.statements())
+    if res.error: return res
+
+    if not self.currrent_tok.type == TT_RBRACE:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected '}'"
+      ))
+    
+    res.register_advancement()
+    self.advance()
+
+    return res.success(ClassDefNode(varName, body, initFunc))
 
   ###################################
 
