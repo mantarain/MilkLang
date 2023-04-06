@@ -1543,13 +1543,22 @@ class Parser:
         "Expected keyword: 'func'"
       ))
     
+    if not self.tokens[self.tok_idx+1].type == TT_IDENTIFIER and not self.tokens[self.tok_idx+1].value == 'construct':
+      return res.failure(InvalidSyntaxError(
+        self.tokens[self.tok_idx+1].pos_start, self.tokens[self.tok_idx+1].pos_end,
+        "Expected 'construct'"
+      ))
+    
     initFunc = res.register(self.func_def())
     if res.error: return res
 
-    body = res.register(self.statements())
-    if res.error: return res
-
-    if not self.currrent_tok.type == TT_RBRACE:
+    if not self.current_tok.type == TT_RBRACE:
+      body = res.register(self.statements())
+      if res.error: return res
+    else:
+      body = self.current_tok
+    
+    if not self.current_tok.type == TT_RBRACE:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
         "Expected '}'"
