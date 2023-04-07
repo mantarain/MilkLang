@@ -1903,6 +1903,29 @@ class List(Value):
   def __repr__(self):
     return f'[{", ".join([repr(x) for x in self.elements])}]'
 
+class Dict(Value):
+  def __init__(self, elements):
+    super().__init__()
+    self.elements = elements
+  
+  def added_to(self, otherKey, otherValue):
+    newDict = self.copy()
+    newDict[otherKey] = otherValue
+    return newDict, None
+  
+  def copy(self):
+    copy = Dict(self.elements)
+    copy.set_pos(self.pos_start, self.pos_end)
+    copy.set_context(self.context)
+    return copy
+  
+  def __str__(self):
+    return "{" + str(self.elements) + "}"
+  
+  def __repr__(self):
+    return "{" + str(self.elements) + "}"
+  
+
 class BaseFunction(Value):
   def __init__(self, name):
     super().__init__()
