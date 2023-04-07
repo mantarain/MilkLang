@@ -2550,6 +2550,20 @@ class Interpreter:
 
   def visit_BreakNode(self, node, context):
     return RTResult().success_break()
+  
+  """def visit_ClassDefNode(self, node, context):
+    res = RTResult()
+
+    className = node.varName.value
+    structure = {
+      className : "struct"
+    }
+
+    context.symbol_table.set(className, structure)
+    return res.success(structure)
+  
+  def visit_ClassAccessNode(self, node, context):
+    pass"""
 
 #######################################
 # RUN
