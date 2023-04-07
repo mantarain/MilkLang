@@ -608,13 +608,11 @@ class BreakNode:
     self.pos_end = pos_end
 
 class ClassDefNode:
-  def __init__(self, varName, body, init):
+  def __init__(self, varName):
     self.varName = varName
-    self.body = body
-    self.init = init
 
     self.pos_start = self.varName.pos_start
-    self.pos_end = self.body.pos_end
+    self.pos_end = self.varName.pos_end
   
 class ClassAccessNode:
   def __init__(self, varName, args):
@@ -1536,27 +1534,6 @@ class Parser:
     
     res.register_advancement()
     self.advance()
-
-    if not self.current_tok.matches(TT_KEYWORD, 'func'):
-      return res.failure(InvalidSyntaxError(
-        self.current_tok.pos_start, self.current_tok.pos_end,
-        "Expected keyword: 'func'"
-      ))
-    
-    if not self.tokens[self.tok_idx+1].type == TT_IDENTIFIER and not self.tokens[self.tok_idx+1].value == 'construct':
-      return res.failure(InvalidSyntaxError(
-        self.tokens[self.tok_idx+1].pos_start, self.tokens[self.tok_idx+1].pos_end,
-        "Expected 'construct'"
-      ))
-    
-    initFunc = res.register(self.func_def())
-    if res.error: return res
-
-    if not self.current_tok.type == TT_RBRACE:
-      body = res.register(self.statements())
-      if res.error: return res
-    else:
-      body = self.current_tok
     
     if not self.current_tok.type == TT_RBRACE:
       return res.failure(InvalidSyntaxError(
@@ -1567,7 +1544,7 @@ class Parser:
     res.register_advancement()
     self.advance()
 
-    return res.success(ClassDefNode(varName, body, initFunc))
+    return res.success(ClassDefNode(varName))
 
   ###################################
 
