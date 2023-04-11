@@ -6,13 +6,13 @@ Main Parts:
         ✔ brace: func, if, for, while @done(23-04-05 09:31)
 
     Vars:
-        ☐ Access/Change var value without redefining
-        ☐ Create dict type
-        ☐ Add "types" keyword for adding tags
-        ☐ Add "params" keyword for adding custom value tags
+        ✔ Access/Change var value without redefining @done(23-04-10 13:46)
+        ✘ Create dict type @cancelled(23-04-11 11:30)
+        ✘ Add "types" keyword for adding tags @cancelled(23-04-11 11:30)
+        ✘ Add "params" keyword for adding custom value tags @cancelled(23-04-11 11:30)
 
         Objects:
-            ☐ Create object with nothing in
+            ✔ Create object with nothing in @done(23-04-10 13:46)
             ☐ Create type() func to return object type
             ☐ Create built-in objects, define str, int vars with these
-            ☐ Create custom objects, with custom funcs and vars
+            ✔ Create custom objects, with custom funcs and vars @done(23-04-11 11:26)

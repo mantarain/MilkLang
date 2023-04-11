@@ -1,8 +1,11 @@
 import main
 
+debug = 'run("tests/struct.mlk")'
+
 while True:
 	text = input('milk > ')
 	if text.strip() == "": continue
+	if text == "run": text = debug
 	result, error = main.run('<terminal>', text)
 
 	if error:

@@ -1,0 +1,11 @@
+struct test {
+    func construct(a, b){
+        return a + b
+    }
+
+    let x = 3
+
+    func printVars(){
+        print("vars")
+    }
+}
