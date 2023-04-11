@@ -16,9 +16,6 @@ DIGITS = '0123456789'
 LETTERS = string.ascii_letters
 LETTERS_DIGITS = LETTERS + DIGITS
 
-STRUCTFUNCS = [
-  ()
-]
 
 #######################################
 # ERRORS
@@ -48,6 +45,10 @@ class ExpectedCharError(Error):
 class InvalidSyntaxError(Error):
   def __init__(self, pos_start, pos_end, details=''):
     super().__init__(pos_start, pos_end, 'Invalid Syntax', details)
+
+class ClassAccessError(Error):
+  def __init__(self, pos_start, pos_end, details=''):
+    super().__init__(pos_start, pos_end, 'Struct has no atribute to', details)
 
 class RTError(Error):
   def __init__(self, pos_start, pos_end, details, context):
@@ -626,15 +627,15 @@ class ClassDefNode:
     self.body = body
 
     self.pos_start = self.varName.pos_start
-    self.pos_end = self.varName.pos_end
+    self.pos_end = self.body.pos_end
   
 class ClassAccessNode:
-  def __init__(self, varName, args):
+  def __init__(self, varName, arg):
     self.varName = varName
-    self.args = args
+    self.arg = arg
 
     self.pos_start = self.varName.pos_start
-    self.pos_end = self.args.pos_end
+    self.pos_end = self.arg.pos_end
 
 #######################################
 # PARSE RESULT
@@ -960,6 +961,15 @@ class Parser:
         self.advance()
 
         return VarAccessNode(tok, "dict", key)
+      
+      elif self.current_tok.type == TT_DOT:
+        res.register_advancement()
+        self.advance()
+
+        value = res.register(self.atom())
+        if res.error: return res
+
+        return res.success(ClassAccessNode(tok, value))
 
       return res.success(VarAccessNode(tok, "normal"))
 
@@ -2735,14 +2745,34 @@ class Interpreter:
 
       structure.set(name, value)
 
-
     context.symbol_table.set(className, structure)
     return res.success(structure)
   
   def visit_ClassAccessNode(self, node, context):
-    pass
+    res = RTResult()
+    key = node.arg
 
-# Fixing adding stuff to dict
+    className = node.varName.value
+    classDict = context.symbol_table.get(className)
+    if not isinstance(key, VarAccessNode):
+      key = res.register(self.visit(node.arg, context))
+      if res.should_return(): return res
+
+    if isinstance(key, Function):
+      key = key.name
+    
+    elif isinstance(key, VarAccessNode):
+      key = key.var_name_tok.value
+
+    accessValue = classDict.access(key)
+    if accessValue == None:
+      return RTResult.failure(ClassAccessError(
+        node.pos_start, node.pos_end,
+        f"'{node.arg.value}'"
+      ))
+    
+    return res.success(accessValue)
+
 
 #######################################
 # RUN

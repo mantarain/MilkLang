@@ -15,4 +15,4 @@ Main Parts:
             ✔ Create object with nothing in @done(23-04-10 13:46)
             ☐ Create type() func to return object type
             ☐ Create built-in objects, define str, int vars with these
-            ☐ Create custom objects, with custom funcs and vars
+            ✔ Create custom objects, with custom funcs and vars @done(23-04-11 11:26)
