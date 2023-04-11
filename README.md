@@ -1,4 +1,4 @@
-# Milk V0.01 BETA
+# Milk V0.0.1 BETA
 
 Milk Lang is a project I made following CodePulse's tutortial on how to create the BASIC programming language in python.
 I started this project whne I was almost 13 years old, now I am 13 years old, and I named this language after Dani's funny obsession with milk.
