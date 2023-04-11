@@ -1,7 +1,7 @@
 # Milk V0.01 BETA
 
 Milk Lang is a project I made following CodePulse's tutortial on how to create the BASIC programming language in python.
-I started this project whne I was almost 13 years old, and I named this language after Dani's funny obsession with milk.
+I started this project whne I was almost 13 years old, now I am 13 years old, and I named this language after Dani's funny obsession with milk.
 Dani is a famous youtuber who is in the process of creating a fun game called Karlson.
 
 # Contributors
@@ -74,8 +74,9 @@ math.add(1, 1)
 ## Contributing
 
 Contributions to the Milk language are welcome!
-If you're interested in contributing to the project, fork it, do your modifications and send a pull request.
+If you're interested in contributing to the project, fork it, create a branch, do your modifications and send a pull request.
 Anybody who contributes will get their name of this **README.md** file.
+If any of you would like to help me takle some porblems or add some features refer to the TODO file.
 
 
 ## License
