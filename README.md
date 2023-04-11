@@ -38,16 +38,18 @@ let pi = 3.14159                # Float assignment
 let name = "John"               # String assignment
 let list = [1, 2, 3, 4, 5]      # List assignment
 
-print("Hello, " + name)         # Print statement
+print("Hello world!")         # Print statement
 
-if num > 0:                     # If statement
+if num > 0 {                     # If statement
     print("Num is positive!")
-else:
+} else {
     print("Num is not positive.")
+}
 
-while num > 0:                  # While loop
+while num > 0 {                  # While loop
     print(num)
     num = num - 1
+}
 
 func add(a, b){                 # Function Definition
   return a + b
