@@ -15,6 +15,7 @@ import math
 DIGITS = '0123456789'
 LETTERS = string.ascii_letters
 LETTERS_DIGITS = LETTERS + DIGITS
+GLOBAL_TYPES = []
 
 
 #######################################
@@ -627,7 +628,7 @@ class ClassDefNode:
     self.body = body
 
     self.pos_start = self.varName.pos_start
-    self.pos_end = self.body.pos_end
+    self.pos_end = self.varName.pos_end
   
 class ClassAccessNode:
   def __init__(self, varName, arg):
@@ -2167,7 +2168,7 @@ class BuiltInFunction(BaseFunction):
 
   def execute_print(self, exec_ctx):
     print(str(exec_ctx.symbol_table.get('value')))
-    return RTResult().success(Number.null)
+    return RTResult().success(Number.none)
   execute_print.arg_names = ['value']
   
   def execute_print_ret(self, exec_ctx):
@@ -2192,7 +2193,7 @@ class BuiltInFunction(BaseFunction):
 
   def execute_clear(self, exec_ctx):
     os.system('clear' if os.name == 'nt' else 'clear') 
-    return RTResult().success(Number.null)
+    return RTResult().success(Number.none)
   execute_clear.arg_names = []
 
   def execute_is_number(self, exec_ctx):
@@ -2227,7 +2228,7 @@ class BuiltInFunction(BaseFunction):
       ))
 
     list_.elements.append(value)
-    return RTResult().success(Number.null)
+    return RTResult().success(Number.none)
   execute_append.arg_names = ["list", "value"]
 
   def execute_pop(self, exec_ctx):
@@ -2278,7 +2279,7 @@ class BuiltInFunction(BaseFunction):
       ))
 
     listA.elements.extend(listB.elements)
-    return RTResult().success(Number.null)
+    return RTResult().success(Number.none)
   execute_extend.arg_names = ["listA", "listB"]
 
   def execute_len(self, exec_ctx):
@@ -2746,6 +2747,7 @@ class Interpreter:
       structure.set(name, value)
 
     context.symbol_table.set(className, structure)
+    GLOBAL_TYPES.append(str(className))
     return res.success(structure)
   
   def visit_ClassAccessNode(self, node, context):
