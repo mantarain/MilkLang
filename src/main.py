@@ -16,6 +16,10 @@ DIGITS = '0123456789'
 LETTERS = string.ascii_letters
 LETTERS_DIGITS = LETTERS + DIGITS
 
+STRUCTFUNCS = [
+  ()
+]
+
 #######################################
 # ERRORS
 #######################################
@@ -477,9 +481,18 @@ class ListNode:
     self.pos_start = pos_start
     self.pos_end = pos_end
 
+class DictNode:
+  def __init__(self, element_nodes, pos_start, pos_end):
+    self.element_nodes = element_nodes
+
+    self.pos_start = pos_start
+    self.pos_end = pos_end
+
 class VarAccessNode:
-  def __init__(self, var_name_tok):
+  def __init__(self, var_name_tok, type_, key=None):
     self.var_name_tok = var_name_tok
+    self.type = type_
+    self.key = key
 
     self.pos_start = self.var_name_tok.pos_start
     self.pos_end = self.var_name_tok.pos_end
@@ -608,8 +621,9 @@ class BreakNode:
     self.pos_end = pos_end
 
 class ClassDefNode:
-  def __init__(self, varName):
+  def __init__(self, varName, body):
     self.varName = varName
+    self.body = body
 
     self.pos_start = self.varName.pos_start
     self.pos_end = self.varName.pos_end
@@ -928,8 +942,26 @@ class Parser:
         self.advance()
 
         return res.success(VarModifNode(tok, modif, val))
+      
+      elif self.current_tok.type == TT_LBRACE:
+        res.register_advancement()
+        self.advance()
 
-      return res.success(VarAccessNode(tok))
+        key = res.register(self.expr())
+        if res.error: return res
+
+        if not self.current_tok.type == TT_RBRACE:
+          return res.failure(InvalidSyntaxError(
+            self.current_tok.pos_start, self.current_tok.pos_end,
+            "Expected '}'"
+          ))
+        
+        res.register_advancement()
+        self.advance()
+
+        return VarAccessNode(tok, "dict", key)
+
+      return res.success(VarAccessNode(tok, "normal"))
 
     elif tok.type == TT_LPAREN:
       res.register_advancement()
@@ -950,6 +982,7 @@ class Parser:
       list_expr = res.register(self.list_expr())
       if res.error: return res
       return res.success(list_expr)
+    
     
     elif tok.matches(TT_KEYWORD, 'if'):
       if_expr = res.register(self.if_expr())
@@ -1027,6 +1060,75 @@ class Parser:
       pos_start,
       self.current_tok.pos_end.copy()
     ))
+    
+  """def dict_expr(self):
+    res = ParseResult()
+    element_nodes = {}
+    pos_start = self.current_tok.pos_start.copy()
+
+    if self.current_tok.type != TT_LBRACE:
+      return res.failure(InvalidSyntaxError(
+        self.current_tok.pos_start, self.current_tok.pos_end,
+        "Expected '{'"
+      ))
+    
+    res.register_advancement()
+    self.advance()
+
+    if self.current_tok.type == TT_RBRACE:
+      res.register_advancement()
+      self.advance()
+    else:
+      res.register_advancement()
+      self.advance()
+
+      key = res.register(self.expr())
+      if res.error: return res
+
+      if key.op_tok.type != TT_MINUS:
+        return res.failure(InvalidSyntaxError(
+        key.op_tok.pos_start, key.op_tok.pos_end,
+        "Expected '-'"
+      ))
+      value = key.right_node
+      key = key.left_node
+
+      element_nodes[key.value] = value.value
+      
+      
+      while self.current_tok.type == TT_COMMA:
+        res.register_advancement()
+        self.advance()
+
+        key = res.register(self.expr())
+        if res.error: return res
+
+        if key.op_tok.type != TT_MINUS:
+          return res.failure(InvalidSyntaxError(
+          key.op_tok.pos_start, key.op_tok.pos_end,
+          "Expected '-'"
+        ))
+
+        value = key.right_node
+        key = key.left_node
+
+        element_nodes[key.value] = value.value
+
+      if self.current_tok.type != TT_RBRACE:
+        return res.failure(InvalidSyntaxError(
+          self.current_tok.pos_start, self.current_tok.pos_end,
+          "Expected ',' or '}'"
+        ))
+
+      res.register_advancement()
+      self.advance()
+
+    return res.success(DictNode(
+      element_nodes,
+      pos_start,
+      self.current_tok.pos_end.copy()
+    ))"""
+
 
   def if_expr(self):
     res = ParseResult()
@@ -1506,6 +1608,7 @@ class Parser:
   
   def class_def(self):
     res = ParseResult()
+    body = {}
     
     if not self.current_tok.matches(TT_KEYWORD, 'struct'):
       return res.failure(InvalidSyntaxError(
@@ -1534,7 +1637,23 @@ class Parser:
     
     res.register_advancement()
     self.advance()
-    
+
+    x = 0
+
+    while self.current_tok != TT_RBRACE:
+      while self.current_tok.type == TT_NEWLINE:
+        res.register_advancement()
+        self.advance()
+      
+      if self.current_tok.type == TT_RBRACE: break
+
+      expr = res.register(self.expr())
+      if res.error: return res
+
+      body[x] = expr
+      x += 1
+
+
     if not self.current_tok.type == TT_RBRACE:
       return res.failure(InvalidSyntaxError(
         self.current_tok.pos_start, self.current_tok.pos_end,
@@ -1544,7 +1663,7 @@ class Parser:
     res.register_advancement()
     self.advance()
 
-    return res.success(ClassDefNode(varName))
+    return res.success(ClassDefNode(varName, body))
 
   ###################################
 
@@ -1908,10 +2027,15 @@ class Dict(Value):
     super().__init__()
     self.elements = elements
   
-  def added_to(self, otherKey, otherValue):
-    newDict = self.copy()
-    newDict[otherKey] = otherValue
-    return newDict, None
+  def set(self, otherKey, otherValue):
+    self.elements[otherKey] = otherValue
+    return self.elements, None
+  
+  def access(self, key):
+    return self.elements[key]
+  
+  def delete(self, key):
+    del self.elements[key]
   
   def copy(self):
     copy = Dict(self.elements)
@@ -1920,10 +2044,10 @@ class Dict(Value):
     return copy
   
   def __str__(self):
-    return "{" + str(self.elements) + "}"
+    return str(self.elements)
   
   def __repr__(self):
-    return "{" + str(self.elements) + "}"
+    return str(self.elements)
   
 
 class BaseFunction(Value):
@@ -2266,6 +2390,11 @@ class Interpreter:
     return RTResult().success(
       String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
     )
+  
+  def visit_DictNode(self, node, context):
+    return RTResult().success(
+      Dict(node.element_nodes).set_context(context).set_pos(node.pos_start, node.pos_end)
+    )
 
   def visit_ListNode(self, node, context):
     res = RTResult()
@@ -2290,6 +2419,10 @@ class Interpreter:
         f"'{var_name}' is not defined",
         context
       ))
+    
+    elif node.type == "dict":
+      newValue = value[node.key]
+      return res.success(newValue)
 
     value = value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
     return res.success(value)
@@ -2359,28 +2492,40 @@ class Interpreter:
 
     if node.op_tok.type == TT_PLUS:
       result, error = left.added_to(right)
+
     elif node.op_tok.type == TT_MINUS:
       result, error = left.subbed_by(right)
+
     elif node.op_tok.type == TT_MUL:
       result, error = left.multed_by(right)
+
     elif node.op_tok.type == TT_DIV:
       result, error = left.dived_by(right)
+
     elif node.op_tok.type == TT_POW:
       result, error = left.powed_by(right)
+
     elif node.op_tok.type == TT_EE:
       result, error = left.get_comparison_eq(right)
+
     elif node.op_tok.type == TT_NE:
       result, error = left.get_comparison_ne(right)
+
     elif node.op_tok.type == TT_LT:
       result, error = left.get_comparison_lt(right)
+
     elif node.op_tok.type == TT_GT:
       result, error = left.get_comparison_gt(right)
+
     elif node.op_tok.type == TT_LTE:
       result, error = left.get_comparison_lte(right)
+
     elif node.op_tok.type == TT_GTE:
       result, error = left.get_comparison_gte(right)
+
     elif node.op_tok.matches(TT_KEYWORD, 'and'):
       result, error = left.anded_by(right)
+
     elif node.op_tok.matches(TT_KEYWORD, 'or'):
       result, error = left.ored_by(right)
 
@@ -2574,19 +2719,30 @@ class Interpreter:
   def visit_BreakNode(self, node, context):
     return RTResult().success_break()
   
-  """def visit_ClassDefNode(self, node, context):
+  def visit_ClassDefNode(self, node, context):
     res = RTResult()
 
     className = node.varName.value
-    structure = {
-      className : "struct"
-    }
+    emptyDict = {}
+    structure = Dict(emptyDict)
+
+    for k, v in node.body.items():
+      value = v
+      name = value.var_name_tok.value
+
+      value = res.register(self.visit(value, context))
+      if res.should_return(): return res
+
+      structure.set(name, value)
+
 
     context.symbol_table.set(className, structure)
     return res.success(structure)
   
   def visit_ClassAccessNode(self, node, context):
-    pass"""
+    pass
+
+# Fixing adding stuff to dict
 
 #######################################
 # RUN
